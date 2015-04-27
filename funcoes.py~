@@ -1,0 +1,48 @@
+# -*- coding: utf-8 -*-
+
+import socket
+import sys
+import os
+
+def menu(vetor):
+	os.system('clear')
+	print "\n----------------------------------------------"
+	print "Lista de pacotes a serem enviados: "
+	print vetor[0:len(vetor)-1]
+	print "\nOpções:"
+	print "\n1 - Enviar próximo pacote"
+	print "2 - Corromper envio do próximo pacote"
+	print "3 - Duplicar envio do próximo pacote"
+	print "4 - Embaralhar pacotes"
+	print "5 - Sair\n"
+	escolha = 0
+	while (escolha<1 or escolha>5):
+		escolha = int(raw_input("Opção escolhida:"))
+	return escolha
+
+#Calcula complemento de 1
+def complemento(n,tamanho):
+	comp = n ^ ((1 << tamanho) - 1)
+	return '0b{0:0{1}b}'.format(comp, tamanho)
+
+#Soma de verificação
+def checksum(portaorigem,portadestino,comprimento):
+	primeirasoma = bin(portaorigem+portadestino)[2:].zfill(16)
+	if (len(primeirasoma)>16):
+		primeirasoma = primeirasoma[1:17]
+		primeirasoma = bin(int(primeirasoma,2) + 1)[2:].zfill(16)
+	segundasoma = bin(int(primeirasoma,2)+comprimento)[2:].zfill(16)
+	if (len(segundasoma)>16):
+		segundasoma = segundasoma[1:17]
+		segundasoma = bin(int(segundasoma,2) + 1)[2:].zfill(16)
+	checksum = complemento(int(segundasoma,2),16)[2:]
+	return int(checksum,2)
+
+def cria_pacote_cliente(portaorigem,portadestino,comprimento,soma,seq,dado):
+	pacote = bin(portaorigem)[2:].zfill(16)+bin(portadestino)[2:].zfill(16)+bin(comprimento)[2:].zfill(16)+bin(soma)[2:].zfill(16)+bin(seq)[2:].zfill(1)+bin(dado)[2:].zfill(32)
+	return pacote
+
+def cria_pacote_servidor(portaorigem,portadestino,comprimento,ack,seq):
+	soma = checksum(portaorigem,portadestino,comprimento)
+	pacote = bin(portaorigem)[2:].zfill(16)+bin(portadestino)[2:].zfill(16)+bin(comprimento)[2:].zfill(16)+bin(ack)[2:].zfill(1)+bin(seq)[2:].zfill(1)+bin(soma)[2:].zfill(16)
+	return pacote
